@@ -18,7 +18,9 @@ public enum Permissions {
     Save("jf.kitbox.save"),
     Remove("jf.kitbox.remove"),
     SetOwner("jf.kitbox.setowner"),
-    KitBox("jf.kitbox");
+    SetName("jf.kitbox.setname"),
+    KitBox("jf.kitbox"),
+    SetSize("jf.kitbox.setSize");
 
     private String permission;
 
@@ -32,7 +34,7 @@ public enum Permissions {
         } else if (player.isOp()) {
             return true;
         } else if (Main.PEX_ENABLED) {
-            return PermissionsEx.getUser((Player)player).has(perm.permission);
+            return PermissionsEx.getUser((Player) player).has(perm.permission);
         } else {
             return player.hasPermission(perm.permission);
         }

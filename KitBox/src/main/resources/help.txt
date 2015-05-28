@@ -1,6 +1,0 @@
-�������� �������:
- �5/kitbox �acreate �7[duplicate: true|false or 1|0] [size: min 9, max 54] [title: String] �f- �������� ����� � �������� size, ��������� title, ��������������(true) ��� ����������������(false)
- �5/kitbox �areload �f- ������������ �������
- �5/kitbox �asave �f- ���������� ���� ������
- �5/kitbox �aremove �f- �������� �������� �����
- �5/kitbox �asetowner �7[name: String] �f- ������������ � ����� (����� ��������� ��������� �� ���������)

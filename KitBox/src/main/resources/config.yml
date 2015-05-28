@@ -1,8 +1,0 @@
-defaults:
-  boxYaml:
-    name: "boxdb.yml"
-  inventory:
-    name: Box
-    size: 9
-    duplicate: true
-    owner: SERVER

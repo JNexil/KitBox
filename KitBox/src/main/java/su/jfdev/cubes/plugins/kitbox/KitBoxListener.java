@@ -25,18 +25,17 @@ public class KitBoxListener implements Listener {
     private Plugin plugin;
 
     @EventHandler
-    public void onServerAutoSave(WorldSaveEvent ev){
+    public void onServerAutoSave(WorldSaveEvent ev) {
         Main.getInstance().saveBoxYaml();
     }
 
 
     @EventHandler
-    public void onBlockDestroy(BlockBreakEvent ev){
+    public void onBlockDestroy(BlockBreakEvent ev) {
         Location loc = ev.getBlock().getLocation();
-        if (!Main.getInstance().getBoxYaml().contains(YamlMap.convertLocationToPath(loc) + ".content")){
+        if (!Main.getInstance().getBoxYaml().contains(YamlMap.convertLocationToPath(loc) + ".content")) {
             return;
-        }
-        else {
+        } else {
             YamlMap.removeYamlInventory(loc);
         }
     }
