@@ -1,4 +1,4 @@
-package su.jfdev.cubes.plugins.kitbox;
+package su.jfdev.cubes.plugins.kitbox.yaml;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -6,12 +6,13 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import su.jfdev.cubes.plugins.kitbox.Main;
 
 /**
  * Created by Jamefrus on 09.05.2015.
  */
 
-public class YamlMap {
+public class YamlControl {
 
     public static String convertLocationToPath(Location loc) {
         final char P = '.'; // Character Point "."
@@ -128,7 +129,7 @@ public class YamlMap {
             int lastSlotInLine = i * 9;
             if (lastSlotInLine <= inv.getSize()) {
                 try {
-                    if (inv.getItem(lastSlotInLine) == null){
+                    if (inv.getItem(lastSlotInLine) == null) {
                         return lastSlotInLine;
                     }
                 } catch (ArrayIndexOutOfBoundsException e) {
@@ -172,7 +173,7 @@ public class YamlMap {
     public static void setSize(int size, Location loc, boolean cut) throws IllegalArgumentException {
         ConfigurationSection section = getContentSection(loc);
         int oldSize = section.getInt("size");
-        if(oldSize == size) throw new IllegalArgumentException("error_no_changes");
+        if (oldSize == size) throw new IllegalArgumentException("error_no_changes");
         Inventory inventoryFromYaml = getInventoryFromYaml(loc, section.getString("owner"));
         if (cut) sortInventory(inventoryFromYaml);
         Inventory inventory = Bukkit.createInventory(null, size, inventoryFromYaml.getTitle());

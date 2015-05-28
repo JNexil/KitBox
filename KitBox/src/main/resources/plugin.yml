@@ -1,5 +1,5 @@
 name: KitBox
-version: 0.3
+version: 0.4
 description: Kits without commands with using personality box (inventory in any block).
 author: Jamefrus
 website: https://vk.com/jfdev
@@ -7,4 +7,20 @@ main: su.jfdev.cubes.plugins.kitbox.Main
 commands:
   kitbox:
     description: /kitbox help to more
-    aliases: [kb,setbox,]
+    aliases: [kb,setbox]
+  kbreload:
+    description: Mirror for /kitbox reload
+  kbhelp:
+    description: Mirror for /kitbox help
+  kbcreate:
+    description: Mirror for /kitbox create
+  kbsave:
+    description: Mirror for /kitbox save
+  kbremove:
+    description: Mirror for /kitbox remove
+  kbreown:
+    description: Mirror for /kitbox setowner
+  kbrename:
+    description: Mirror for /kitbox setname
+  kbresize:
+    description: Mirror for /kitbox setsize

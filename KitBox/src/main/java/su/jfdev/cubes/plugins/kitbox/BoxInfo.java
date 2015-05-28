@@ -53,6 +53,4 @@ public class BoxInfo {
         this.getBoxMap().put(player, inventory);
     }
 
-    //---
-
 }

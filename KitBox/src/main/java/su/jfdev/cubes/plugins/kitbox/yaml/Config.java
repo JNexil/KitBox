@@ -1,7 +1,8 @@
-package su.jfdev.cubes.plugins.kitbox;
+package su.jfdev.cubes.plugins.kitbox.yaml;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.Plugin;
+import su.jfdev.cubes.plugins.kitbox.Main;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,53 +17,24 @@ public enum Config {
     INV_NAME("defaults.inventory.name", "Box"),
     INV_OWNER("defaults.inventory.owner", "SERVER"),
     INV_SIZE("defaults.inventory.size", 9),
-    INV_DUPLICATE("defaults.inventory.duplicate", false);
+    INV_DUPLICATE("defaults.inventory.duplicate", false),
+    HELP_SEPARATION("defaults.help.separation", false);
 
-
-    Config(String path, Object def) {
-        this.path = path;
-        this.def = def;
-    }
 
     private boolean empty;
     private Object value;
     private String path;
     private Object def;
 
-
-    public String getPath() {
-        return path;
-    }
-
-    public Object getDef() {
-        return def;
-    }
-
-    public Object getValue() {
-        if(value == null) return getDef();
-        else return value;
-    }
-
-    public int getInteger() {
-        return (Integer) this.getValue();
-    }
-
-    public String getString() {
-        return (String) this.getValue();
-    }
-
-    public boolean getBoolean() {
-        return (Boolean) this.getValue();
-    }
-
-    public void setValue(Object value) {
-        this.value = value;
+    Config(String path, Object def) {
+        this.path = path;
+        this.def = def;
     }
 
     public static void saveConfiguration() {
         FileConfiguration conf = Main.getInstance().getConfig();
         for (Config path : Config.values()) {
-            if((path.getValue()) != null){
+            if ((path.getValue()) != null) {
                 conf.set(path.getPath(), path.getValue());
 
             } else {
@@ -95,6 +67,35 @@ public enum Config {
         } else {
             Config.initConfiguration();
         }
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public Object getDef() {
+        return def;
+    }
+
+    public Object getValue() {
+        if (value == null) return getDef();
+        else return value;
+    }
+
+    public void setValue(Object value) {
+        this.value = value;
+    }
+
+    public int getInteger() {
+        return (Integer) this.getValue();
+    }
+
+    public String getString() {
+        return (String) this.getValue();
+    }
+
+    public boolean getBoolean() {
+        return (Boolean) this.getValue();
     }
 
     public boolean isEmpty() {

@@ -1,4 +1,4 @@
-package su.jfdev.cubes.plugins.kitbox;
+package su.jfdev.cubes.plugins.kitbox.cmd;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -10,28 +10,29 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.Plugin;
+import su.jfdev.cubes.plugins.kitbox.Main;
 import su.jfdev.cubes.plugins.kitbox.util.HelpBuilder;
-
-import static su.jfdev.cubes.plugins.kitbox.Permissions.*;
+import su.jfdev.cubes.plugins.kitbox.yaml.Config;
+import su.jfdev.cubes.plugins.kitbox.yaml.YamlControl;
 
 import java.util.HashSet;
+
+import static su.jfdev.cubes.plugins.kitbox.cmd.Permission.*;
 
 /**
  * Created by Jamefrus on 08.05.2015.
  */
 
-public class KitBoxCMDs implements CommandExecutor {
+public class KitBoxCommand implements CommandExecutor {
 
-    public KitBoxCMDs(Plugin plugin) {
+    private static final String PREFIX = ChatColor.DARK_GREEN + "[KitBox] " + ChatColor.DARK_AQUA;
+    private Plugin plugin;
+
+    public KitBoxCommand(Plugin plugin) {
         this.plugin = plugin;
     }
 
-    private static final String PREFIX = ChatColor.DARK_GREEN + "[KitBox] " + ChatColor.DARK_AQUA;
-
-    private Plugin plugin;
-
-    @Override
-    public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
+    public static boolean executeCommand(CommandSender commandSender, String[] strings) {
         boolean isPlayer = false;
         if (commandSender instanceof Player) isPlayer = true;
         String metaCommand = null;
@@ -51,7 +52,7 @@ public class KitBoxCMDs implements CommandExecutor {
             commandSender.sendMessage(PREFIX + "База боксов перезагружена");
             return true;
         } else if (metaCommand.equalsIgnoreCase("remove") && has(commandSender, Remove) && isPlayer) {
-            YamlMap.removeYamlInventory(targetBlock.getLocation());
+            YamlControl.removeYamlInventory(targetBlock.getLocation());
             commandSender.sendMessage(PREFIX + "KitBox с цели удален");
             return true;
         } else if (metaCommand.equalsIgnoreCase("setowner") && has(commandSender, SetOwner) && isPlayer) {
@@ -59,7 +60,7 @@ public class KitBoxCMDs implements CommandExecutor {
             if (strings.length > 1 && !strings[1].isEmpty()) {
                 newName = strings[1];
             } else newName = Config.INV_OWNER.getString();
-            YamlMap.renameOwner(newName, targetBlock.getLocation());
+            YamlControl.renameOwner(newName, targetBlock.getLocation());
             commandSender.sendMessage(PREFIX + "KitBox перепривязан к имени: " + newName);
         } else if (metaCommand.equalsIgnoreCase("help") && has(commandSender, Help)) {
             commandSender.sendMessage(HelpBuilder.createHelp(commandSender));
@@ -69,11 +70,11 @@ public class KitBoxCMDs implements CommandExecutor {
             if (strings.length > 1) {
                 StringBuilder sb = new StringBuilder();
                 for (int i = 1; i < strings.length; i++) {
-                    if(i > 1) sb.append(' ');
-                            sb.append(strings[i]);
+                    if (i > 1) sb.append(' ');
+                    sb.append(strings[i]);
                 }
                 title = sb.toString();
-                YamlMap.rename(title, targetBlock.getLocation());
+                YamlControl.rename(title, targetBlock.getLocation());
                 commandSender.sendMessage(PREFIX + "KitBox переименован: " + title);
                 return true;
             } else {
@@ -84,7 +85,7 @@ public class KitBoxCMDs implements CommandExecutor {
             if (strings.length > 1) {
                 if (strings[1].equalsIgnoreCase("-cut")) {
                     try {
-                        YamlMap.setSize(-1, targetBlock.getLocation());
+                        YamlControl.setSize(-1, targetBlock.getLocation());
                     } catch (IllegalArgumentException e) {
                         if (e.getMessage().equals("error_no_changes")) {
                             commandSender.sendMessage(PREFIX + ChatColor.DARK_RED + "Невозможно сжать более");
@@ -104,31 +105,29 @@ public class KitBoxCMDs implements CommandExecutor {
             return true;
         }
         return false;
-
     }
 
-    private boolean setSizeCommand(CommandSender commandSender, String[] strings, Block targetBlock) throws IllegalArgumentException {
+    private static boolean setSizeCommand(CommandSender commandSender, String[] strings, Block targetBlock) throws IllegalArgumentException {
         int size = -1;
         try {
             size = Integer.parseInt(strings[1]);
-            if(size%9 != 0){
+            if (size % 9 != 0) {
                 size /= 9;
                 size++;
                 size *= 9;
             }
 
             if (strings.length > 2 && strings[2].equalsIgnoreCase("-cut")) {
-                YamlMap.setSize(size, targetBlock.getLocation(), true);
+                YamlControl.setSize(size, targetBlock.getLocation(), true);
                 return true;
             }
             try {
-                YamlMap.setSize(size, targetBlock.getLocation());
+                YamlControl.setSize(size, targetBlock.getLocation());
             } catch (IllegalArgumentException e) {
                 if (e.getMessage().startsWith("error_size")) {
                     int minsize = Integer.parseInt(e.getMessage().substring(11, e.getMessage().length()));
                     commandSender.sendMessage(PREFIX + ChatColor.DARK_RED + "Минимальный размер для этого бокса: " + minsize + ". Увеличьте размер или используйте /setsize [size] -cut");
-                }
-                else throw e;
+                } else throw e;
             }
         } catch (NumberFormatException e) {
             commandSender.sendMessage(PREFIX + ChatColor.DARK_RED + "Не указан размер, используйте /setsize [size]");
@@ -136,7 +135,7 @@ public class KitBoxCMDs implements CommandExecutor {
         return true;
     }
 
-    private boolean onCreateCommand(CommandSender commandSender, String[] strings, Block targetBlock) {
+    private static boolean onCreateCommand(CommandSender commandSender, String[] strings, Block targetBlock) {
         int inventorySize;
         String title;
         boolean duplicate = Config.INV_DUPLICATE.getBoolean();
@@ -166,16 +165,21 @@ public class KitBoxCMDs implements CommandExecutor {
 
         if (!has(commandSender, Duplicate)) duplicate = false;
 
-        if(inventorySize%9 != 0){
+        if (inventorySize % 9 != 0) {
             inventorySize /= 9;
             inventorySize++;
             inventorySize *= 9;
         }
 
         Inventory inventory = Bukkit.createInventory(null, inventorySize, title);
-        YamlMap.createYamlInventory(targetBlock.getLocation(), commandSender.getName(), inventory, duplicate);
+        YamlControl.createYamlInventory(targetBlock.getLocation(), commandSender.getName(), inventory, duplicate);
         commandSender.sendMessage(PREFIX + "KitBox создан. Размер: " + inventorySize + ". Название: " + title + ". Владелец: " + commandSender.getName());
         return true;
+    }
+
+    @Override
+    public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
+        return executeCommand(commandSender, strings);
     }
 
 }

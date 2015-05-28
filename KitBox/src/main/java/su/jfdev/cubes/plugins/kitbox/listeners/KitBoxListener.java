@@ -1,16 +1,17 @@
-package su.jfdev.cubes.plugins.kitbox;
+package su.jfdev.cubes.plugins.kitbox.listeners;
 
 import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.WorldSaveEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.Plugin;
+import su.jfdev.cubes.plugins.kitbox.Main;
+import su.jfdev.cubes.plugins.kitbox.yaml.YamlControl;
 
 /**
  * Created by Jamefrus on 08.05.2015.
@@ -18,11 +19,11 @@ import org.bukkit.plugin.Plugin;
 
 public class KitBoxListener implements Listener {
 
+    private Plugin plugin;
+
     public KitBoxListener(Plugin plugin) {
         this.plugin = plugin;
     }
-
-    private Plugin plugin;
 
     @EventHandler
     public void onServerAutoSave(WorldSaveEvent ev) {
@@ -33,10 +34,10 @@ public class KitBoxListener implements Listener {
     @EventHandler
     public void onBlockDestroy(BlockBreakEvent ev) {
         Location loc = ev.getBlock().getLocation();
-        if (!Main.getInstance().getBoxYaml().contains(YamlMap.convertLocationToPath(loc) + ".content")) {
+        if (!Main.getInstance().getBoxYaml().contains(YamlControl.convertLocationToPath(loc) + ".content")) {
             return;
         } else {
-            YamlMap.removeYamlInventory(loc);
+            YamlControl.removeYamlInventory(loc);
         }
     }
 
@@ -46,7 +47,7 @@ public class KitBoxListener implements Listener {
         if (!Main.BOX_INFO.getBoxMap().containsKey(player) || !Main.BOX_INFO.getLocationMap().containsKey(player))
             return;
         else {
-            YamlMap.saveYamlInventory(ev.getPlayer().getName(), Main.BOX_INFO.getInventory(player), Main.getInstance().getBoxYaml().getConfigurationSection(YamlMap.convertLocationToPath(Main.BOX_INFO.getLocation(player))));
+            YamlControl.saveYamlInventory(ev.getPlayer().getName(), Main.BOX_INFO.getInventory(player), Main.getInstance().getBoxYaml().getConfigurationSection(YamlControl.convertLocationToPath(Main.BOX_INFO.getLocation(player))));
             Main.BOX_INFO.getBoxMap().remove(player);
             Main.BOX_INFO.getLocationMap().remove(player);
         }
@@ -56,8 +57,8 @@ public class KitBoxListener implements Listener {
     public void onBlockUsed(PlayerInteractEvent ev) {
         if (ev.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         Location loc = ev.getClickedBlock().getLocation();
-        if (!Main.getInstance().getBoxYaml().contains(YamlMap.convertLocationToPath(loc) + ".content")) return;
-        Inventory inventory = YamlMap.getInventoryFromYaml(loc, ev.getPlayer().getName());
+        if (!Main.getInstance().getBoxYaml().contains(YamlControl.convertLocationToPath(loc) + ".content")) return;
+        Inventory inventory = YamlControl.getInventoryFromYaml(loc, ev.getPlayer().getName());
         ev.getPlayer().openInventory(inventory);
         Main.BOX_INFO.putLocationAndInventory(ev.getPlayer().getName(), loc, inventory);
         ev.setCancelled(true);
