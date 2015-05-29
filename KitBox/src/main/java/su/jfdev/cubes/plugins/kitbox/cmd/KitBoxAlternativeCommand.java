@@ -1,6 +1,5 @@
 package su.jfdev.cubes.plugins.kitbox.cmd;
 
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 
@@ -14,8 +13,8 @@ import java.util.List;
 
 public class KitBoxAlternativeCommand implements CommandExecutor {
     @Override
-    public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
-        String cmd = Permission.search(command.getName()).getCmd();
+    public boolean onCommand(CommandSender commandSender, org.bukkit.command.Command command, String s, String[] strings) {
+        String cmd = Command.search(command.getName()).getCommand();
         List<String> stringList = new ArrayList<>();
         stringList.add(cmd);
         Collections.addAll(stringList, strings);

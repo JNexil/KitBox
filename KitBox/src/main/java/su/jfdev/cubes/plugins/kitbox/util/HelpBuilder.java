@@ -2,7 +2,9 @@ package su.jfdev.cubes.plugins.kitbox.util;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
-import su.jfdev.cubes.plugins.kitbox.cmd.Permission;
+import su.jfdev.cubes.plugins.kitbox.OPermission;
+import su.jfdev.cubes.plugins.kitbox.cmd.Command;
+import su.jfdev.cubes.plugins.kitbox.lang.Localization;
 import su.jfdev.cubes.plugins.kitbox.yaml.Config;
 
 import java.util.ArrayList;
@@ -24,7 +26,7 @@ public class HelpBuilder {
     public static String createHelp(CommandSender cm) {
         StringBuilder sb = new StringBuilder();
         List<String> stringList = new ArrayList<>();
-        stringList.add(ChatColor.DARK_GREEN + "[KitBox] Доступны команды:");
+        stringList.add(ChatColor.DARK_GREEN + "[KitBox] " + Localization.getLocalizedCommandText(Command.Help, "title"));
         if (Config.HELP_SEPARATION.getBoolean()) {
             constructHelp(cm, stringList, (byte) 0);
             constructHelp(cm, stringList, (byte) 1);
@@ -32,59 +34,64 @@ public class HelpBuilder {
             constructHelp(cm, stringList, (byte) 2);
         }
         if (stringList.size() > 1) {
-            return Util.buildList(stringList).toString();
+            return UtilString.buildList(stringList).toString();
         }
 
-        return "Вам не доступны команды KitBox";
+        return Localization.getLocalizedCommandText(Command.Help, "nocmds");
     }
 
     private static void constructHelp(CommandSender cm, List<String> stringList, byte alt) {
-        for (Command command : Command.values()) {
-            if (Permission.has(cm, command.permission)) {
+        for (CommandHelper commandHelper : CommandHelper.values()) {
+            if (su.jfdev.cubes.plugins.kitbox.cmd.Command.has(cm, commandHelper.getCommand())) {
                 StringBuilder commandbuilder = new StringBuilder();
                 if (alt != 1)
-                    commandbuilder.append(ChatColor.GOLD).append("• /kitbox ").append(command.permission.getCmd());
-                else commandbuilder.append(ChatColor.GOLD).append("• /").append(command.permission.getAltCmd());
+                    commandbuilder.append(ChatColor.GOLD).append("• /kitbox ").append(commandHelper.getCommand().getCommand());
+                else commandbuilder.append(ChatColor.GOLD).append("• /").append(commandHelper.getCommand().getAltCMD());
                 if (alt == 2)
-                    commandbuilder.append(ChatColor.YELLOW).append(" or /").append(command.permission.getAltCmd());
-
-                if (command.args.length > 0) {
-                    commandbuilder.append(ChatColor.GRAY);
-                    for (String arg : command.args) {
-                        if (arg.contains("duplicate")) {
-                            if (!Permission.has(cm, Permission.Duplicate)) {
-                                continue;
+                    commandbuilder.append(ChatColor.YELLOW).append(" or /").append(commandHelper.getCommand().getAltCMD());
+                if (commandHelper.args != null)
+                    if (commandHelper.args.length > 0) {
+                        commandbuilder.append(ChatColor.GRAY);
+                        for (String arg : commandHelper.args) {
+                            if (arg.contains("duplicate")) {
+                                if (!OPermission.Duplicate.has(cm)) {
+                                    continue;
+                                }
                             }
+                            commandbuilder.append(" [").append(arg).append("]");
                         }
-                        commandbuilder.append(" [").append(arg).append("]");
                     }
-                }
-                commandbuilder.append(ChatColor.WHITE).append(" - " + getLocalizedValue(command.permission.getCmd()));
+                commandbuilder.append(ChatColor.WHITE).append(" - " + commandHelper.getCommand().getLocalizedDescription());
                 stringList.add(commandbuilder.toString());
 
             }
         }
     }
 
-    public static String getLocalizedValue(String command) {
-        return "эта команда имеет значение, однако пока-что вам этого не дано понять...";
-    }
+    private enum CommandHelper {
+        Reload,
+        Create("duplicate: true(1) or false(0)", "size: min 9, max 54", "title: String"),
+        Save,
+        Remove,
+        SetOwner("name: String"),
+        SetName("name: String"),
+        SetSize("size: min 9, max 54", "-cut");
 
-    private enum Command {
-        Reload(Permission.Reload),
-        Create(Permission.Create, "duplicate: true(1) or false(0)", "size: min 9, max 54", "title: String"),
-        Save(Permission.Save),
-        Remove(Permission.Remove),
-        SetOwner(Permission.SetOwner, "name: String"),
-        SetName(Permission.SetName, "name:String"),
-        SetSize(Permission.SetSize, "size: min 9, max 54", "-cut");
+        private String[] args;
 
-        Permission permission;
-        String[] args;
+        CommandHelper() {
+        }
 
-        Command(Permission permission, String... args) {
-            this.permission = permission;
+        CommandHelper(String... args) {
             this.args = args;
+        }
+
+        public Command getCommand() {
+            return Command.valueOf(this.name());
+        }
+
+        public String[] getArgs() {
+            return args;
         }
     }
 }

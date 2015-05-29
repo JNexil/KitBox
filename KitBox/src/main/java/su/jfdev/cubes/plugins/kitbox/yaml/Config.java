@@ -18,14 +18,18 @@ public enum Config {
     INV_OWNER("defaults.inventory.owner", "SERVER"),
     INV_SIZE("defaults.inventory.size", 9),
     INV_DUPLICATE("defaults.inventory.duplicate", false),
-    HELP_SEPARATION("defaults.help.separation", false);
+    HELP_SEPARATION("defaults.help.separation", false),
+    LANG_PREFIX("defaults.lang.prefix", "kitbox."),
+    WEB_SERVER("defaults.web.server", "http://jf.zz.vc/kitbox/"),
+    YA_DISK("defaults.web.yadisk", true),
+    YA_DISK_DIR("defaults.web.yadiskdir", "https://yadi.sk/d/0bNoens5gjmnH"),
+    LANGUAGE("defaults.lang.langfile", "ru_RU.lang");
 
 
     private boolean empty;
     private Object value;
     private String path;
     private Object def;
-
     Config(String path, Object def) {
         this.path = path;
         this.def = def;
@@ -56,14 +60,16 @@ public enum Config {
             plugin.getDataFolder().mkdirs();
         }
         File file = new File(plugin.getDataFolder(), "config.yml");
-        if (!file.exists()) {
+        if (!file.exists() || file.length() == 0) {
             try {
                 file.createNewFile();
                 initConfiguration();
+                saveConfiguration();
                 Main.getInstance().getConfig().save(file);
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            Main.getInstance().reloadConfig();
         } else {
             Config.initConfiguration();
         }

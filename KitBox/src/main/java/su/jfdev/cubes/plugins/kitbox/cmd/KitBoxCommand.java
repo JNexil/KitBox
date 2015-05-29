@@ -4,20 +4,22 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.Plugin;
 import su.jfdev.cubes.plugins.kitbox.Main;
+import su.jfdev.cubes.plugins.kitbox.OPermission;
 import su.jfdev.cubes.plugins.kitbox.util.HelpBuilder;
+import su.jfdev.cubes.plugins.kitbox.util.UtilString;
 import su.jfdev.cubes.plugins.kitbox.yaml.Config;
 import su.jfdev.cubes.plugins.kitbox.yaml.YamlControl;
 
 import java.util.HashSet;
 
-import static su.jfdev.cubes.plugins.kitbox.cmd.Permission.*;
+import static su.jfdev.cubes.plugins.kitbox.cmd.Command.*;
+import static su.jfdev.cubes.plugins.kitbox.lang.Localization.getLocalizedCommandText;
 
 /**
  * Created by Jamefrus on 08.05.2015.
@@ -32,6 +34,10 @@ public class KitBoxCommand implements CommandExecutor {
         this.plugin = plugin;
     }
 
+    public static String getSuccessText(su.jfdev.cubes.plugins.kitbox.cmd.Command command) {
+        return getLocalizedCommandText(command, "success");
+    }
+
     public static boolean executeCommand(CommandSender commandSender, String[] strings) {
         boolean isPlayer = false;
         if (commandSender instanceof Player) isPlayer = true;
@@ -39,21 +45,21 @@ public class KitBoxCommand implements CommandExecutor {
         if (strings.length > 0) metaCommand = strings[0];
         Block targetBlock = null;
         if (isPlayer) targetBlock = ((Player) commandSender).getPlayer().getTargetBlock((HashSet<Material>) null, 6);
-        if (strings.length == 0 && has(commandSender, KitBox)) {
-            commandSender.sendMessage("Используйте /kitbox help для получения информации");
+        if (strings.length == 0 && OPermission.KitBox.has(commandSender)) {
+            executeCommand(commandSender, new String[]{"help"});
         } else if (metaCommand.equalsIgnoreCase("create") && has(commandSender, Create) && isPlayer) {
             return onCreateCommand(commandSender, strings, targetBlock);
         } else if (metaCommand.equalsIgnoreCase("save") && has(commandSender, Save)) {
             Main.getInstance().saveBoxYaml();
-            commandSender.sendMessage(PREFIX + "База боксов сохранена");
+            commandSender.sendMessage(PREFIX + getSuccessText(Save));
             return true;
         } else if (metaCommand.equalsIgnoreCase("reload") && has(commandSender, Reload)) {
             Main.getInstance().reload();
-            commandSender.sendMessage(PREFIX + "База боксов перезагружена");
+            commandSender.sendMessage(PREFIX + getSuccessText(Reload));
             return true;
         } else if (metaCommand.equalsIgnoreCase("remove") && has(commandSender, Remove) && isPlayer) {
             YamlControl.removeYamlInventory(targetBlock.getLocation());
-            commandSender.sendMessage(PREFIX + "KitBox с цели удален");
+            commandSender.sendMessage(PREFIX + getSuccessText(Remove));
             return true;
         } else if (metaCommand.equalsIgnoreCase("setowner") && has(commandSender, SetOwner) && isPlayer) {
             String newName;
@@ -61,7 +67,7 @@ public class KitBoxCommand implements CommandExecutor {
                 newName = strings[1];
             } else newName = Config.INV_OWNER.getString();
             YamlControl.renameOwner(newName, targetBlock.getLocation());
-            commandSender.sendMessage(PREFIX + "KitBox перепривязан к имени: " + newName);
+            commandSender.sendMessage(PREFIX + String.format(getSuccessText(SetOwner).replaceAll("%name", "%s"), commandSender.getName()));
         } else if (metaCommand.equalsIgnoreCase("help") && has(commandSender, Help)) {
             commandSender.sendMessage(HelpBuilder.createHelp(commandSender));
             return true;
@@ -75,10 +81,10 @@ public class KitBoxCommand implements CommandExecutor {
                 }
                 title = sb.toString();
                 YamlControl.rename(title, targetBlock.getLocation());
-                commandSender.sendMessage(PREFIX + "KitBox переименован: " + title);
+                commandSender.sendMessage(PREFIX + getSuccessText(SetName).replaceAll("%title", title));
                 return true;
             } else {
-                commandSender.sendMessage(PREFIX + ChatColor.DARK_RED + "Не указано имя, используйте /setname [name]");
+                commandSender.sendMessage(PREFIX + ChatColor.DARK_RED + getLocalizedCommandText(SetName, "emptyname") + " /setname [name]");
                 return true;
             }
         } else if (metaCommand.equalsIgnoreCase("setsize") && has(commandSender, SetSize) && isPlayer) {
@@ -88,7 +94,7 @@ public class KitBoxCommand implements CommandExecutor {
                         YamlControl.setSize(-1, targetBlock.getLocation());
                     } catch (IllegalArgumentException e) {
                         if (e.getMessage().equals("error_no_changes")) {
-                            commandSender.sendMessage(PREFIX + ChatColor.DARK_RED + "Невозможно сжать более");
+                            commandSender.sendMessage(PREFIX + ChatColor.DARK_RED + getLocalizedCommandText(SetSize, "impossible_compress"));
                         }
                     }
 
@@ -97,7 +103,7 @@ public class KitBoxCommand implements CommandExecutor {
                         return setSizeCommand(commandSender, strings, targetBlock);
                     } catch (IllegalArgumentException e) {
                         if (e.getMessage().equals("error_no_changes")) {
-                            commandSender.sendMessage(PREFIX + ChatColor.DARK_RED + "Вы указали размер, совпадающий с прежним");
+                            commandSender.sendMessage(PREFIX + ChatColor.DARK_RED + getLocalizedCommandText(SetSize, "nochanges"));
                         }
                     }
                 }
@@ -126,11 +132,11 @@ public class KitBoxCommand implements CommandExecutor {
             } catch (IllegalArgumentException e) {
                 if (e.getMessage().startsWith("error_size")) {
                     int minsize = Integer.parseInt(e.getMessage().substring(11, e.getMessage().length()));
-                    commandSender.sendMessage(PREFIX + ChatColor.DARK_RED + "Минимальный размер для этого бокса: " + minsize + ". Увеличьте размер или используйте /setsize [size] -cut");
+                    commandSender.sendMessage(PREFIX + ChatColor.DARK_RED + getLocalizedCommandText(SetSize, "invalid_size").replaceAll("%minsize", String.valueOf(minsize)));
                 } else throw e;
             }
         } catch (NumberFormatException e) {
-            commandSender.sendMessage(PREFIX + ChatColor.DARK_RED + "Не указан размер, используйте /setsize [size]");
+            commandSender.sendMessage(PREFIX + ChatColor.DARK_RED + getLocalizedCommandText(SetSize, "nosize") + " /setsize [size]");
         }
         return true;
     }
@@ -163,7 +169,7 @@ public class KitBoxCommand implements CommandExecutor {
             }
         } else title = Config.INV_NAME.getString();
 
-        if (!has(commandSender, Duplicate)) duplicate = false;
+        if (!OPermission.Duplicate.has(commandSender)) duplicate = false;
 
         if (inventorySize % 9 != 0) {
             inventorySize /= 9;
@@ -173,12 +179,19 @@ public class KitBoxCommand implements CommandExecutor {
 
         Inventory inventory = Bukkit.createInventory(null, inventorySize, title);
         YamlControl.createYamlInventory(targetBlock.getLocation(), commandSender.getName(), inventory, duplicate);
-        commandSender.sendMessage(PREFIX + "KitBox создан. Размер: " + inventorySize + ". Название: " + title + ". Владелец: " + commandSender.getName());
+
+        String dup = "";
+        if (duplicate) dup = getLocalizedCommandText(Create, "dup");
+        commandSender.sendMessage(PREFIX + getSuccessText(Create).replaceAll("%dup", dup).replaceAll("%title", title).replaceAll("%name", commandSender.getName()).replaceAll("%size", Integer.toString(inventorySize)));
         return true;
     }
 
     @Override
-    public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
+    public boolean onCommand(CommandSender commandSender, org.bukkit.command.Command command, String s, String[] strings) {
+        if (OPermission.KitBox.has(commandSender) && strings.length == 0) {
+            commandSender.sendMessage(Main.getInstance().getLocalization().getLocalizedText(UtilString.buildString(Config.LANG_PREFIX.getString(), "commands.kitbox.text")));
+            return true;
+        } else
         return executeCommand(commandSender, strings);
     }
 

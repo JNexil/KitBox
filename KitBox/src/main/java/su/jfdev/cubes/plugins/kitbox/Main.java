@@ -4,9 +4,10 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
+import su.jfdev.cubes.plugins.kitbox.cmd.Command;
 import su.jfdev.cubes.plugins.kitbox.cmd.KitBoxAlternativeCommand;
 import su.jfdev.cubes.plugins.kitbox.cmd.KitBoxCommand;
-import su.jfdev.cubes.plugins.kitbox.cmd.Permission;
+import su.jfdev.cubes.plugins.kitbox.lang.Localization;
 import su.jfdev.cubes.plugins.kitbox.listeners.KitBoxListener;
 import su.jfdev.cubes.plugins.kitbox.yaml.Config;
 
@@ -23,23 +24,28 @@ public class Main extends JavaPlugin {
     private static Main instance;
     private YamlConfiguration boxYaml;
     private CommandExecutor kitBoxCommandExecutor;
+    private Localization localization;
 
     public static synchronized Main getInstance() {
         return instance;
+    }
+
+    public Localization getLocalization() {
+        if (localization == null) localization = new Localization(Config.LANGUAGE.getString());
+        return localization;
     }
 
     @Override
     public void onEnable() {
         Main.instance = this;
         Config.verifyConfigurationFile();
-        Config.initConfiguration();
         getServer().getPluginManager().registerEvents(new KitBoxListener(this), this);
         this.getCommand("kitbox").setExecutor(new KitBoxCommand(this));
-        for (Permission perm : Permission.values()) {
-            if (perm.getAltCmd() == null) {
+        for (Command perm : Command.values()) {
+            if (perm.getAltCMD() == null) {
                 continue;
             } else {
-                this.getCommand(perm.getAltCmd()).setExecutor(new KitBoxAlternativeCommand());
+                this.getCommand(perm.getAltCMD()).setExecutor(new KitBoxAlternativeCommand());
             }
         }
     }
@@ -52,7 +58,6 @@ public class Main extends JavaPlugin {
     public void reload() {
         this.reloadConfig();
         Config.verifyConfigurationFile();
-        System.out.println("Main.reload");
         boxYaml = loadBoxYaml();
     }
 

@@ -11,6 +11,7 @@ import org.bukkit.event.world.WorldSaveEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.Plugin;
 import su.jfdev.cubes.plugins.kitbox.Main;
+import su.jfdev.cubes.plugins.kitbox.OPermission;
 import su.jfdev.cubes.plugins.kitbox.yaml.YamlControl;
 
 /**
@@ -55,6 +56,7 @@ public class KitBoxListener implements Listener {
 
     @EventHandler
     public void onBlockUsed(PlayerInteractEvent ev) {
+        if (!OPermission.Use.has(ev.getPlayer())) return;
         if (ev.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         Location loc = ev.getClickedBlock().getLocation();
         if (!Main.getInstance().getBoxYaml().contains(YamlControl.convertLocationToPath(loc) + ".content")) return;
